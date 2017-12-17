@@ -53,7 +53,9 @@
       },
       "executables": [
         ".*.nes",
-        ".*.bin"
+        ".*.bin",
+        ".*.sms",
+        ".*.smc"
       ],
       "features": [
         ".*_single.conf"

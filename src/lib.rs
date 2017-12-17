@@ -79,10 +79,13 @@ pub fn run(args: Args) -> Result<(), Box<Error>> {
         utils::recursive_find(&config.paths.target, &active_profile.executables())?;
     utils::strip_prefix(&mut executables, &config.paths.target)?;
 
-    let menu = menu::Menu::from(&executables);
-
-    let selection = menu.display();
-    mappings.insert("executable", selection);
+    if executables.len() > 1 {
+        let menu = menu::Menu::from(&executables);
+        let selection = menu.display();
+        mappings.insert("executable", selection);
+    } else if executables.len() == 1 {
+        mappings.insert("executable", &executables[0]);
+    }
 
     active_profile.run(&mappings)?;
 
