@@ -1,3 +1,2 @@
-resources
 target
-*.lock
+Cargo.lock

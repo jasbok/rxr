@@ -1,0 +1,126 @@
+{
+  "active_profile": "msdos",
+  "profiles": {
+    "msdos": {
+      "command": {
+        "cmd": "dosbox",
+        "args": [
+          "-c",
+          "@echo off",
+          "-exit",
+          "-c",
+          "cls",
+          "{executable}"
+        ],
+        "evars": {
+          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
+        }
+      },
+      "executables": [
+        ".*\\.exe$",
+        ".*\\.bat$",
+        ".*\\.com$"
+      ]
+    },
+    "gog-dosbox": {
+      "command": {
+        "cmd": "dosbox",
+        "args": [
+          "{executable}"
+        ],
+        "evars": {
+          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
+        }
+      },
+      "executables": [
+        ".*.exe",
+        ".*.bat",
+        ".*.conf"
+      ],
+      "features": [
+        ".*_single.conf"
+      ]
+    },
+    "mednafen": {
+      "command": {
+        "cmd": "mednafen",
+        "args": [
+          "{executable}"
+        ],
+        "evars": {
+          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
+        }
+      },
+      "executables": [
+        ".*.nes",
+        ".*.bin"
+      ],
+      "features": [
+        ".*_single.conf"
+      ]
+    },
+    "gzdoom": {
+      "command": {
+        "cmd": "gzdoom",
+        "args": [
+          "-iwad",
+          "{executable}"
+        ],
+        "evars": {
+          "DRI_PRIME": "1"
+        }
+      },
+      "executables": [
+        ".*\\.wad$"
+      ],
+      "features": [
+        ".*\\.wad$"
+      ]
+    }
+  },
+  "paths": {
+    "tmp": "/tmp/rxr"
+  },
+  "extractors": {
+    "zip": {
+      "extensions": [
+        "zip",
+        "sh"
+      ],
+      "command": {
+        "cmd": "unzip",
+        "args": [
+          "{archive}",
+          "-d",
+          "{target}"
+        ]
+      }
+    },
+    "7z": {
+      "extensions": [
+        "7z"
+      ],
+      "command": {
+        "cmd": "7z",
+        "args": [
+          "x",
+          "-o{target}",
+          "{archive}"
+        ]
+      }
+    },
+    "innoextract": {
+      "extensions": [
+        "exe"
+      ],
+      "command": {
+        "cmd": "innoextract",
+        "args": [
+          "-e",
+          "-m",
+          "{archive}"
+        ]
+      }
+    }
+  }
+}

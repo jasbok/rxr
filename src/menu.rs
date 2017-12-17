@@ -12,7 +12,7 @@ impl<'a> Menu<'a> {
         Menu::<'a> { paths: paths }
     }
 
-    pub fn display(&self) -> usize {
+    pub fn display(&self) -> &PathBuf {
         ncurses::initscr();
 
         let chars = vec![
@@ -20,25 +20,56 @@ impl<'a> Menu<'a> {
             b't', b'y', b'u', b'i', b'o', b'p', b'a', b's', b'd', b'f', b'g', b'h', b'j', b'k',
             b'l', b';', b'z', b'x', b'c', b'v', b'b', b'n', b'm', b',', b'.', b'/',
         ];
-        let mut options: HashMap<u8, usize> = HashMap::new();
 
-        let mut selection: Option<usize> = None;
+        let mut selection: Option<&PathBuf> = None;
+        let mut page = 0;
+        let page_size = 10;
+        let pages: usize = self.paths.len() / page_size;
+
         while selection == None {
-            for (i, path) in self.paths.iter().enumerate() {
-                if i >= chars.len() {
-                    break;
-                }
+            let mut options: HashMap<u8, &PathBuf> = HashMap::new();
+            let start = page * page_size;
+            let mut end = start + page_size;
 
-                ncurses::printw(&format!("[{}] {:#?}\n", chars[i] as char, path));
-                options.insert(chars[i], i);
+            if end > self.paths.len() {
+                end = self.paths.len();
             }
+
+            ncurses::printw(&format!(
+                "Select Executable (Page {} of {})\n",
+                page + 1,
+                pages + 1
+            ));
+            for (i, path) in self.paths.iter().enumerate() {
+                if start <= i && i < end {
+                    let index = i - start;
+                    ncurses::printw(&format!("[{}] {:#?}\n", chars[index] as char, path));
+                    options.insert(chars[index], &path);
+                }
+            }
+
+            ncurses::printw(&format!("[<] Next Page\n"));
+            ncurses::printw(&format!("[>] Previous Page\n"));
 
             ncurses::refresh();
 
-            let select = options.get(&(ncurses::getch() as u8));
-
-            if select != None {
-                selection = Some(select.unwrap().clone());
+            match ncurses::getch() as u8 {
+                b'<' => {
+                    if page > 0 {
+                        page -= 1;
+                    }
+                }
+                b'>' => {
+                    if page < pages {
+                        page += 1;
+                    }
+                }
+                select => {
+                    let option = options.get(&select);
+                    if option != None {
+                        selection = Some(option.unwrap().clone());
+                    }
+                }
             }
 
             ncurses::clear();

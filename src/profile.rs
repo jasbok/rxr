@@ -4,17 +4,17 @@ extern crate regex;
 use regex::Regex;
 use regex::RegexBuilder;
 
-use std::collections::HashMap;
-use std::path::Path;
-use std::process::Command;
+use std::error::Error;
 
+use command::Command;
 use mappings::Mappings;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Profile {
-    pub cmd: String,
-    pub args: Vec<String>,
-    evars: Option<HashMap<String, String>>,
+    pub command: Command,
+    // pub cmd: String,
+    // pub args: Vec<String>,
+    // evars: Option<HashMap<String, String>>,
     executables: Option<Vec<String>>,
     features: Option<Vec<String>>,
 }
@@ -54,21 +54,28 @@ impl Profile {
         regexes
     }
 
-    pub fn command(&self, working_dir: &Path, mappings: &Mappings) -> Command {
-        let mut cmd = Command::new(&self.cmd);
+    pub fn run(&mut self, mappings: &Mappings) -> Result<(), Box<Error>> {
+        self.command.apply_mappings(mappings);
+        self.command.execute()?;
 
-        let mut args = self.args.clone();
-        let mut evars = self.evars.clone().unwrap_or(HashMap::new());
-
-        for arg in &mut args {
-            *arg = mappings.replace_all(arg);
-        }
-        for evar in evars.values_mut() {
-            *evar = mappings.replace_all(evar);
-        }
-
-        cmd.current_dir(working_dir).args(args).envs(evars);
-
-        cmd
+        Ok(())
     }
+
+    // pub fn command(&self, working_dir: &Path, mappings: &Mappings) -> Command {
+    //     let mut cmd = Command::new(&self.cmd);
+
+    //     let mut args = self.args.clone();
+    //     let mut evars = self.evars.clone().unwrap_or(HashMap::new());
+
+    //     for arg in &mut args {
+    //         *arg = mappings.replace_all(arg);
+    //     }
+    //     for evar in evars.values_mut() {
+    //         *evar = mappings.replace_all(evar);
+    //     }
+
+    //     cmd.current_dir(working_dir).args(args).envs(evars);
+
+    //     cmd
+    // }
 }

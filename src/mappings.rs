@@ -2,6 +2,7 @@ use serde::Serialize;
 use serde_json;
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Mappings {
     mappings: HashMap<String, String>,
 }
@@ -25,6 +26,10 @@ impl Mappings {
         self
     }
 
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.mappings.get(key)
+    }
+
     pub fn replace_all<T: ?Sized>(&self, val: &T) -> String
     where
         T: Serialize,
@@ -37,5 +42,30 @@ impl Mappings {
         }
 
         result
+    }
+
+    pub fn replace(&self, val: &mut String) -> () {
+        for (mkey, mval) in self.mappings.iter() {
+            let mkey = String::from(format!("{{{}}}", mkey));
+            *val = val.replace(&mkey, &mval);
+        }
+    }
+
+    pub fn replace_vec(&self, values: &mut Vec<String>) -> () {
+        for val in values.iter_mut() {
+            for (mkey, mval) in self.mappings.iter() {
+                let mkey = String::from(format!("{{{}}}", mkey));
+                *val = val.replace(&mkey, &mval);
+            }
+        }
+    }
+
+    pub fn replace_map(&self, values: &mut HashMap<String, String>) -> () {
+        for val in values.values_mut() {
+            for (mkey, mval) in self.mappings.iter() {
+                let mkey = String::from(format!("{{{}}}", mkey));
+                *val = val.replace(&mkey, &mval);
+            }
+        }
     }
 }

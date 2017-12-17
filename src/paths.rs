@@ -25,7 +25,7 @@ impl Paths {
     }
 
     pub fn target_default() -> PathBuf {
-        PathBuf::from("{tmp}/{archive}")
+        PathBuf::from("{tmp}/{archive.name}")
     }
 
     pub fn stdout_default() -> PathBuf {
