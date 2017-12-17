@@ -1,0 +1,11 @@
+[package]
+name = "rxr"
+version = "0.1.0"
+authors = ["Stefan Alberts <stefan6573@gmail.com>"]
+
+[dependencies]
+ncurses = "5.87"
+regex = "0.2"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
