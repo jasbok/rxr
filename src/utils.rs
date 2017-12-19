@@ -1,28 +1,9 @@
 use std::error::Error;
 use std::fs;
-use std::io;
-use std::io::Read;
 use std::path::Path;
 use std::path::PathBuf;
 
 use regex::Regex;
-
-pub fn read_integer() -> Result<usize, Box<Error>> {
-    let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
-
-    let input = input.trim().parse::<usize>()?;
-
-    Ok(input)
-}
-
-pub fn read_char() -> Option<usize> {
-    io::stdin()
-        .bytes()
-        .next()
-        .and_then(|res| res.ok())
-        .map(|byte| byte as usize)
-}
 
 pub fn recursive_find(dir: &Path, regexes: &Vec<Regex>) -> Result<Vec<PathBuf>, Box<Error>> {
     let mut results: Vec<PathBuf> = Vec::new();

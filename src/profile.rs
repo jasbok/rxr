@@ -5,6 +5,7 @@ use regex::Regex;
 use regex::RegexBuilder;
 
 use std::error::Error;
+use std::path::PathBuf;
 
 use command::Command;
 use mappings::Mappings;
@@ -54,28 +55,15 @@ impl Profile {
         regexes
     }
 
-    pub fn run(&mut self, mappings: &Mappings) -> Result<(), Box<Error>> {
-        self.command.apply_mappings(mappings);
-        self.command.execute()?;
+    pub fn run(&self, executable: &PathBuf, target: &PathBuf) -> Result<(), Box<Error>> {
+        let mut mappings = Mappings::new();
+        mappings.insert("executable", executable);
+        mappings.insert("target", target);
+
+        let mut command = self.command.clone();
+        command.apply_mappings(&mappings);
+        command.execute()?;
 
         Ok(())
     }
-
-    // pub fn command(&self, working_dir: &Path, mappings: &Mappings) -> Command {
-    //     let mut cmd = Command::new(&self.cmd);
-
-    //     let mut args = self.args.clone();
-    //     let mut evars = self.evars.clone().unwrap_or(HashMap::new());
-
-    //     for arg in &mut args {
-    //         *arg = mappings.replace_all(arg);
-    //     }
-    //     for evar in evars.values_mut() {
-    //         *evar = mappings.replace_all(evar);
-    //     }
-
-    //     cmd.current_dir(working_dir).args(args).envs(evars);
-
-    //     cmd
-    // }
 }

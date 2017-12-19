@@ -123,6 +123,16 @@
           "{archive}"
         ]
       }
+    },
+    "fallback": {
+      "command": {
+        "cmd": "cp",
+        "args": [
+          "{archive}",
+          "{target}"
+        ]
+      },
+      "extensions": []
     }
   }
 }

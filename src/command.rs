@@ -4,7 +4,7 @@ use std::process;
 
 use mappings::Mappings;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Command {
     pub cmd: String,
     pub args: Vec<String>,
@@ -30,6 +30,8 @@ impl Command {
     pub fn execute(&self) -> Result<(), Box<Error>> {
         let mut cmd = process::Command::new(&self.cmd);
         cmd.args(&self.args).envs(&self.evars).current_dir(&self.wd);
+
+        println!("Executing command: {:#?}", cmd);
 
         match cmd.output() {
             Ok(_) => {}

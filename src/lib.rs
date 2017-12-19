@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
 
+extern crate clap;
 extern crate regex;
 extern crate serde;
 extern crate serde_json;
@@ -9,85 +10,63 @@ use std::error::Error;
 use std::fs;
 use std::path::PathBuf;
 
-pub mod args;
 mod command;
-mod config;
+mod configuration;
 mod extractor;
 mod mappings;
 mod menu;
-mod paths;
 mod profile;
 mod utils;
 
-use args::Args;
-use config::Config;
-use mappings::Mappings;
+use configuration::Configuration;
 
-fn read_config(path: &PathBuf) -> Result<Config, Box<Error>> {
-    let conf = match Config::open(&path) {
-        Ok(conf) => Ok(conf),
-        Err(ref err) if err.is::<serde_json::Error>() => {
-            Err(format!("Could not parse config: {})", err))
-        }
-        Err(err) => Err(format!("Could not load config: {})", err)),
-    }?;
+fn extract(config: &Configuration) -> Result<(), Box<Error>> {
+    if !config.target_dir.as_ref().unwrap().as_path().exists() {
+        let extractor = config.get_extractor().unwrap();
+        println!("Extractor: {:#?}", extractor);
 
-    Ok(conf)
+        fs::create_dir_all(&config.target_dir.as_ref().unwrap())?;
+        extractor.extract(
+            config.archive.as_ref().unwrap(),
+            config.target_dir.as_ref().unwrap(),
+        )?;
+    }
+
+    Ok(())
 }
 
-pub fn run(args: Args) -> Result<(), Box<Error>> {
-    let mut mappings = Mappings::new();
-    mappings.insert("archive", &args.archive.to_str().unwrap());
-    mappings.insert(
-        "archive.name",
-        &args.archive
-            .as_path()
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap(),
-    );
-
-    let mut config = read_config(&args.config)?;
-    config.apply_mappings(&mut mappings);
-
-    println!("mappings: {:#?}", mappings);
-    println!("Archive: {:#?}", &config.paths.target);
-    println!("Archive Name: {}", mappings.get("archive.name").unwrap());
-
-    fs::create_dir_all(&config.paths.target)?;
-
-    match config.get_extractor(&args.archive) {
-        Some(extractor) => {
-            extractor.extract()?;
-        }
-        None => {
-            fs::copy(
-                &args.archive,
-                format!(
-                    "{}/{}",
-                    &config.paths.target.to_str().unwrap(),
-                    mappings.get("archive.name").unwrap()
-                ),
-            )?;
-        }
-    };
-
-    let active_profile = config.profiles.get_mut(&args.profile).unwrap();
+fn execute(config: &Configuration) -> Result<(), Box<Error>> {
+    let executor = config.get_profile().unwrap();
+    println!("Executor: {:#?}", executor);
 
     let mut executables =
-        utils::recursive_find(&config.paths.target, &active_profile.executables())?;
-    utils::strip_prefix(&mut executables, &config.paths.target)?;
+        utils::recursive_find(config.target_dir.as_ref().unwrap(), &executor.executables())?;
+    utils::strip_prefix(&mut executables, config.target_dir.as_ref().unwrap())?;
 
     if executables.len() > 1 {
         let menu = menu::Menu::from(&executables);
-        let selection = menu.display();
-        mappings.insert("executable", selection);
+        executor.run(
+            &PathBuf::from(menu.display()),
+            config.target_dir.as_ref().unwrap(),
+        )?;
     } else if executables.len() == 1 {
-        mappings.insert("executable", &executables[0]);
+        executor.run(
+            &PathBuf::from(&executables[0]),
+            config.target_dir.as_ref().unwrap(),
+        )?;
+    } else {
+        println!("Could not find any suitable executables.");
     }
 
-    active_profile.run(&mappings)?;
+    Ok(())
+}
+
+pub fn run(args: clap::ArgMatches) -> Result<(), Box<Error>> {
+    let mut config = Configuration::new(args)?;
+    config.set_defaults();
+
+    extract(&config)?;
+    execute(&config)?;
 
     Ok(())
 }

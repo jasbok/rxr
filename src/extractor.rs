@@ -11,18 +11,21 @@ pub struct Extractor {
 }
 
 impl Extractor {
-    pub fn apply_mappings(&mut self, mappings: &Mappings) {
-        self.command.apply_mappings(mappings);
-    }
-
     pub fn can_extract(&self, path: &PathBuf) -> bool {
         self.extensions.contains(&String::from(
             path.as_path().extension().unwrap().to_str().unwrap(),
         ))
     }
 
-    pub fn extract(&self) -> Result<(), Box<Error>> {
-        self.command.execute()?;
+    pub fn extract(&self, archive: &PathBuf, target: &PathBuf) -> Result<(), Box<Error>> {
+        let mut mappings = Mappings::new();
+        mappings.insert("archive", archive);
+        mappings.insert("target", target);
+
+        let mut command = self.command.clone();
+        command.apply_mappings(&mappings);
+        command.execute()?;
+
         Ok(())
     }
 }
