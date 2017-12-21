@@ -5,28 +5,28 @@ use std::path::PathBuf;
 
 use regex::Regex;
 
-pub fn recursive_find(dir: &Path, regexes: &Vec<Regex>) -> Result<Vec<PathBuf>, Box<Error>> {
-    let mut results: Vec<PathBuf> = Vec::new();
-
+pub fn recursive_find(dir: &Path, regex: &Regex) -> Result<Vec<PathBuf>, Box<Error>> {
     if dir.is_dir() {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            if path.is_dir() {
-                let mut dir_paths = recursive_find(&path, &regexes)?;
-                results.append(&mut dir_paths);
-            } else {
-                for re in regexes {
-                    if re.is_match(path.to_str().unwrap()) {
-                        results.push(path);
-                        break;
-                    }
-                }
-            }
+        let (dirs, files): (Vec<PathBuf>, Vec<PathBuf>) = fs::read_dir(dir)?
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .partition(|p| p.is_dir());
+
+        let mut results: Vec<PathBuf> = files
+            .iter()
+            .filter(|f| regex.is_match(f.to_str().unwrap()))
+            .map(|f| f.clone())
+            .collect();
+
+        for dir in dirs {
+            let mut dir_paths = recursive_find(&dir, regex)?;
+            results.append(&mut dir_paths);
         }
+
+        return Ok(results);
     }
 
-    Ok(results)
+    Ok(Vec::new())
 }
 
 pub fn strip_prefix(paths: &mut Vec<PathBuf>, prefix: &PathBuf) -> Result<(), Box<Error>> {

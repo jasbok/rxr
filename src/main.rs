@@ -5,7 +5,7 @@ extern crate rxr;
 
 fn main() {
     let command_line = clap::App::new("rxr - Rust eXtract and Run")
-        .version("0.1")
+        .version(env!("CARGO_PKG_VERSION"))
         .author("Stefan Alberts <stefan6573@gmail.com>")
         .about("Extracts and runs archives using configured extractors and executors.")
         .arg(
@@ -72,7 +72,7 @@ fn main() {
         )
         .get_matches();
 
-    if let Err(e) = rxr::run(command_line) {
+    if let Err(e) = rxr::run(&command_line) {
         println!("[Application error] {}", e);
 
         process::exit(1);

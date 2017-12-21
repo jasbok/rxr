@@ -4,11 +4,11 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 pub struct Menu<'a> {
-    paths: &'a Vec<PathBuf>,
+    paths: &'a [PathBuf],
 }
 
 impl<'a> Menu<'a> {
-    pub fn from(paths: &'a Vec<PathBuf>) -> Menu<'a> {
+    pub fn from(paths: &'a [PathBuf]) -> Menu<'a> {
         Menu::<'a> { paths: paths }
     }
 
@@ -16,9 +16,46 @@ impl<'a> Menu<'a> {
         ncurses::initscr();
 
         let chars = vec![
-            b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0', b'q', b'w', b'e', b'r',
-            b't', b'y', b'u', b'i', b'o', b'p', b'a', b's', b'd', b'f', b'g', b'h', b'j', b'k',
-            b'l', b';', b'z', b'x', b'c', b'v', b'b', b'n', b'm', b',', b'.', b'/',
+            b'1',
+            b'2',
+            b'3',
+            b'4',
+            b'5',
+            b'6',
+            b'7',
+            b'8',
+            b'9',
+            b'0',
+            b'q',
+            b'w',
+            b'e',
+            b'r',
+            b't',
+            b'y',
+            b'u',
+            b'i',
+            b'o',
+            b'p',
+            b'a',
+            b's',
+            b'd',
+            b'f',
+            b'g',
+            b'h',
+            b'j',
+            b'k',
+            b'l',
+            b';',
+            b'z',
+            b'x',
+            b'c',
+            b'v',
+            b'b',
+            b'n',
+            b'm',
+            b',',
+            b'.',
+            b'/',
         ];
 
         let mut selection: Option<&PathBuf> = None;
@@ -44,12 +81,12 @@ impl<'a> Menu<'a> {
                 if start <= i && i < end {
                     let index = i - start;
                     ncurses::printw(&format!("[{}] {:#?}\n", chars[index] as char, path));
-                    options.insert(chars[index], &path);
+                    options.insert(chars[index], path);
                 }
             }
 
-            ncurses::printw(&format!("[<] Next Page\n"));
-            ncurses::printw(&format!("[>] Previous Page\n"));
+            ncurses::printw("[<] Next Page\n");
+            ncurses::printw("[>] Previous Page\n");
 
             ncurses::refresh();
 
@@ -67,7 +104,7 @@ impl<'a> Menu<'a> {
                 select => {
                     let option = options.get(&select);
                     if option != None {
-                        selection = Some(option.unwrap().clone());
+                        selection = Some(option.unwrap());
                     }
                 }
             }

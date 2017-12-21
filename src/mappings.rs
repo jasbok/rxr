@@ -26,9 +26,9 @@ impl Mappings {
         self
     }
 
-    pub fn get(&self, key: &str) -> Option<&String> {
-        self.mappings.get(key)
-    }
+    // pub fn get(&self, key: &str) -> Option<&String> {
+    //     self.mappings.get(key)
+    // }
 
     pub fn replace_all<T: ?Sized>(&self, val: &T) -> String
     where
@@ -36,35 +36,31 @@ impl Mappings {
     {
         let mut result = serde_json::to_string(val).unwrap().replace("\"", "");
 
-        for (key, val) in self.mappings.iter() {
-            let key = String::from(format!("{{{}}}", key));
-            result = result.replace(&key, &val);
+        for (key, val) in &self.mappings {
+            result = result.replace(&format!("{{{}}}", key), val);
         }
 
         result
     }
 
     pub fn replace(&self, val: &mut String) -> () {
-        for (mkey, mval) in self.mappings.iter() {
-            let mkey = String::from(format!("{{{}}}", mkey));
-            *val = val.replace(&mkey, &mval);
+        for (mkey, mval) in &self.mappings {
+            *val = val.replace(&format!("{{{}}}", mkey), mval);
         }
     }
 
     pub fn replace_vec(&self, values: &mut Vec<String>) -> () {
         for val in values.iter_mut() {
-            for (mkey, mval) in self.mappings.iter() {
-                let mkey = String::from(format!("{{{}}}", mkey));
-                *val = val.replace(&mkey, &mval);
+            for (mkey, mval) in &self.mappings {
+                *val = val.replace(&format!("{{{}}}", mkey), mval);
             }
         }
     }
 
     pub fn replace_map(&self, values: &mut HashMap<String, String>) -> () {
         for val in values.values_mut() {
-            for (mkey, mval) in self.mappings.iter() {
-                let mkey = String::from(format!("{{{}}}", mkey));
-                *val = val.replace(&mkey, &mval);
+            for (mkey, mval) in &self.mappings {
+                *val = val.replace(&format!("{{{}}}", mkey), mval);
             }
         }
     }

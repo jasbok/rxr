@@ -5,6 +5,7 @@ use regex::Regex;
 use regex::RegexBuilder;
 
 use std::error::Error;
+use std::fmt;
 use std::path::PathBuf;
 
 use command::Command;
@@ -13,46 +14,31 @@ use mappings::Mappings;
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Profile {
     pub command: Command,
-    // pub cmd: String,
-    // pub args: Vec<String>,
-    // evars: Option<HashMap<String, String>>,
-    executables: Option<Vec<String>>,
-    features: Option<Vec<String>>,
+
+    #[serde(default = "Vec::new")]
+    pub executables: Vec<String>,
+
+    #[serde(default = "Vec::new")]
+    pub features: Vec<String>,
 }
 
 impl Profile {
-    pub fn executables(&self) -> Vec<Regex> {
-        let mut regexes: Vec<Regex> = Vec::new();
+    pub fn executables_regex(&self) -> Result<Regex, Box<Error>> {
+        let regex_str = self.executables.as_slice().join("|");
 
-        if let Some(ref execs) = self.executables {
-            for exec in execs {
-                regexes.push(
-                    RegexBuilder::new(&exec)
-                        .case_insensitive(true)
-                        .build()
-                        .unwrap(),
-                );
-            }
+        match RegexBuilder::new(&regex_str).case_insensitive(true).build() {
+            Ok(reg) => Ok(reg),
+            Err(err) => Err(Box::new(ProfileError::CouldNotParseExecutableRegex)),
         }
-
-        regexes
     }
 
-    pub fn features(&self) -> Vec<Regex> {
-        let mut regexes: Vec<Regex> = Vec::new();
+    pub fn features_regex(&self) -> Result<Regex, Box<Error>> {
+        let regex_str = self.features.as_slice().join("|");
 
-        if let Some(ref execs) = self.executables {
-            for exec in execs {
-                regexes.push(
-                    RegexBuilder::new(&exec)
-                        .case_insensitive(true)
-                        .build()
-                        .unwrap(),
-                );
-            }
+        match RegexBuilder::new(&regex_str).case_insensitive(true).build() {
+            Ok(reg) => Ok(reg),
+            Err(err) => Err(Box::new(ProfileError::CouldNotParseFeatureRegex)),
         }
-
-        regexes
     }
 
     pub fn run(&self, executable: &PathBuf, target: &PathBuf) -> Result<(), Box<Error>> {
@@ -65,5 +51,35 @@ impl Profile {
         command.execute()?;
 
         Ok(())
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum ProfileError {
+    CouldNotParseExecutableRegex,
+    CouldNotParseFeatureRegex,
+}
+
+impl fmt::Display for ProfileError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ProfileError::CouldNotParseExecutableRegex => {
+                write!(f, "could not parse one of the executable regexes")
+            }
+            ProfileError::CouldNotParseFeatureRegex => {
+                write!(f, "could not parse one of the feature regexes")
+            }
+        }
+    }
+}
+
+impl Error for ProfileError {
+    fn description(&self) -> &str {
+        match *self {
+            ProfileError::CouldNotParseExecutableRegex => {
+                "could not parse one of the executable regexes"
+            }
+            ProfileError::CouldNotParseFeatureRegex => "could not parse one of the feature regexes",
+        }
     }
 }

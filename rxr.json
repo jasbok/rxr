@@ -1,5 +1,4 @@
 {
-  "active_profile": "msdos",
   "profiles": {
     "msdos": {
       "command": {
@@ -79,9 +78,6 @@
         ".*\\.wad$"
       ]
     }
-  },
-  "paths": {
-    "tmp": "/tmp/rxr"
   },
   "extractors": {
     "zip": {
