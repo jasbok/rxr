@@ -9,9 +9,10 @@ use std::fmt;
 use std::path::PathBuf;
 
 use command::Command;
+use feature::Feature;
 use mappings::Mappings;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Profile {
     pub command: Command,
 
@@ -19,7 +20,7 @@ pub struct Profile {
     pub executables: Vec<String>,
 
     #[serde(default = "Vec::new")]
-    pub features: Vec<String>,
+    pub features: Vec<Feature>,
 }
 
 impl Profile {
@@ -28,16 +29,7 @@ impl Profile {
 
         match RegexBuilder::new(&regex_str).case_insensitive(true).build() {
             Ok(reg) => Ok(reg),
-            Err(err) => Err(Box::new(ProfileError::CouldNotParseExecutableRegex)),
-        }
-    }
-
-    pub fn features_regex(&self) -> Result<Regex, Box<Error>> {
-        let regex_str = self.features.as_slice().join("|");
-
-        match RegexBuilder::new(&regex_str).case_insensitive(true).build() {
-            Ok(reg) => Ok(reg),
-            Err(err) => Err(Box::new(ProfileError::CouldNotParseFeatureRegex)),
+            Err(_) => Err(Box::new(ProfileError::CouldNotParseExecutableRegex)),
         }
     }
 
@@ -52,12 +44,17 @@ impl Profile {
 
         Ok(())
     }
+
+    pub fn feature_score(&self, items: &[&str]) -> usize {
+        self.features.iter().fold(0, |sum, ref feature| {
+            sum + feature.score_all(items)
+        })
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ProfileError {
     CouldNotParseExecutableRegex,
-    CouldNotParseFeatureRegex,
 }
 
 impl fmt::Display for ProfileError {
@@ -65,9 +62,6 @@ impl fmt::Display for ProfileError {
         match *self {
             ProfileError::CouldNotParseExecutableRegex => {
                 write!(f, "could not parse one of the executable regexes")
-            }
-            ProfileError::CouldNotParseFeatureRegex => {
-                write!(f, "could not parse one of the feature regexes")
             }
         }
     }
@@ -79,7 +73,6 @@ impl Error for ProfileError {
             ProfileError::CouldNotParseExecutableRegex => {
                 "could not parse one of the executable regexes"
             }
-            ProfileError::CouldNotParseFeatureRegex => "could not parse one of the feature regexes",
         }
     }
 }

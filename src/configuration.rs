@@ -15,7 +15,7 @@ use std::path::PathBuf;
 use extractor::Extractor;
 use profile::Profile;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct ConfigurationSource {
     pub archive: Option<String>,
     pub config: Option<String>,
@@ -28,7 +28,7 @@ pub struct ConfigurationSource {
     pub profiles: Option<HashMap<String, Profile>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Configuration {
     pub archive: PathBuf,
     pub config: PathBuf,

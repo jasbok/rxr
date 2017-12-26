@@ -19,12 +19,12 @@ use std::path::PathBuf;
 mod command;
 mod configuration;
 mod extractor;
+mod feature;
 mod mappings;
 mod menu;
 mod profile;
 mod utils;
 
-use configuration::ConfigurationSource;
 use configuration::Configuration;
 
 fn extract(config: &Configuration) -> Result<(), Box<Error>> {
@@ -39,19 +39,34 @@ fn extract(config: &Configuration) -> Result<(), Box<Error>> {
     Ok(())
 }
 
+fn determine_executor(config: &Configuration) -> Result<&profile::Profile, Box<Error>> {
+
+    let files = utils::recursive_find_all(&config.target_dir)?;
+
+    let file_paths: Vec<&str> = files
+        .iter()
+        .map(|file| file.as_path().to_str().unwrap())
+        .collect();
+
+    let (profile, score) = config
+        .profiles
+        .iter()
+        .map(|(key, profile)| (key, profile.feature_score(&file_paths)))
+        .max_by_key(|&(_, score)| score)
+        .unwrap();
+
+    println!("Determined the following profile: {} ({})", profile, score);
+
+    Ok(config.profiles.get(profile).unwrap())
+}
+
 fn execute(config: &Configuration) -> Result<(), Box<Error>> {
-    let executor = config.get_profile().unwrap();
-    println!("Executor: {:#?}", executor);
-
+    let executor = config.get_profile().unwrap_or(determine_executor(config)?);
     let executable_regex = &executor.executables_regex()?;
-
-    println!("Executables Regex: {:#?}", executable_regex);
 
     let mut executables = utils::recursive_find(&config.target_dir, executable_regex)?;
     executables.sort();
     utils::strip_prefix(&mut executables, &config.target_dir)?;
-
-    println!("Executables: {:#?}", executables);
 
     if executables.len() > 1 {
         let menu = menu::Menu::from(&executables);

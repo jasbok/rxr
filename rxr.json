@@ -16,9 +16,12 @@
         }
       },
       "executables": [
-        ".*\\.exe$",
-        ".*\\.bat$",
-        ".*\\.com$"
+        ".*\\.(exe|bat|conf)$"
+      ],
+      "features": [
+        {
+          "pattern": ".*\\.(exe|bat|conf)$"
+        }
       ]
     },
     "gog-dosbox": {
@@ -32,12 +35,42 @@
         }
       },
       "executables": [
-        ".*.exe",
-        ".*.bat",
-        ".*.conf"
+        ".*\\.(exe|bat|conf)$"
       ],
       "features": [
-        ".*_single.conf"
+        {
+          "pattern": ".*\\.(exe|bat|conf)$"
+        },
+        {
+          "pattern": "dosbox",
+          "weight": 2
+        },
+        {
+          "pattern": ".*_(single|setup).conf$",
+          "weight": 2
+        }
+      ]
+    },
+    "gog-scummvm": {
+      "command": {
+        "cmd": "scummvm",
+        "args": [
+          "-c",
+          "{executable}"
+        ],
+        "evars": {}
+      },
+      "executables": [
+        ".*\\.ini$"
+      ],
+      "features": [
+        {
+          "pattern": ".*\\.ini$"
+        },
+        {
+          "pattern": "scummvm",
+          "weight": 2
+        }
       ]
     },
     "mednafen": {
@@ -51,13 +84,12 @@
         }
       },
       "executables": [
-        ".*.nes",
-        ".*.bin",
-        ".*.sms",
-        ".*.smc"
+        ".*\\.(nes|bin|sms|smc|pce)$"
       ],
       "features": [
-        ".*_single.conf"
+        {
+          "pattern": ".*\\.(nes|bin|sms|smc|pce)$"
+        }
       ]
     },
     "gzdoom": {
@@ -75,7 +107,9 @@
         ".*\\.wad$"
       ],
       "features": [
-        ".*\\.wad$"
+        {
+          "pattern": ".*\\.wad$"
+        }
       ]
     }
   },
