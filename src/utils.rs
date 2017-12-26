@@ -12,7 +12,7 @@ pub fn recursive_find_all(dir: &Path) -> Result<Vec<PathBuf>, Box<Error>> {
             .map(|e| e.path())
             .partition(|p| p.is_dir());
 
-        let mut results: Vec<PathBuf> = files.iter().map(|f| f.clone()).collect();
+        let mut results: Vec<PathBuf> = files.to_vec();
 
         for dir in dirs {
             let mut dir_paths = recursive_find_all(&dir)?;
@@ -25,7 +25,7 @@ pub fn recursive_find_all(dir: &Path) -> Result<Vec<PathBuf>, Box<Error>> {
     Ok(Vec::new())
 }
 
-pub fn recursive_find(dir: &Path, regex: &Regex) -> Result<Vec<PathBuf>, Box<Error>> {
+pub fn recursive_find(dir: &Path, regexes: &[Regex]) -> Result<Vec<PathBuf>, Box<Error>> {
     if dir.is_dir() {
         let (dirs, files): (Vec<PathBuf>, Vec<PathBuf>) = fs::read_dir(dir)?
             .filter_map(|e| e.ok())
@@ -34,12 +34,16 @@ pub fn recursive_find(dir: &Path, regex: &Regex) -> Result<Vec<PathBuf>, Box<Err
 
         let mut results: Vec<PathBuf> = files
             .iter()
-            .filter(|f| regex.is_match(f.to_str().unwrap()))
-            .map(|f| f.clone())
+            .filter(|f| {
+                regexes.iter().any(
+                    |regex| regex.is_match(f.to_str().unwrap()),
+                )
+            })
+            .cloned()
             .collect();
 
         for dir in dirs {
-            let mut dir_paths = recursive_find(&dir, regex)?;
+            let mut dir_paths = recursive_find(&dir, regexes)?;
             results.append(&mut dir_paths);
         }
 

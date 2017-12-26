@@ -179,7 +179,7 @@ impl ConfigurationSource {
             .map(|m| {
                 (
                     m.get(0).unwrap().as_str(),
-                    env::var(m.get(1).unwrap().as_str()).unwrap_or(String::new()),
+                    env::var(m.get(1).unwrap().as_str()).unwrap_or_default(),
                 )
             })
             .fold(s.clone(), |e, (key, val)| e.replace(key, &val));

@@ -16,11 +16,11 @@
         }
       },
       "executables": [
-        ".*\\.(exe|bat|conf)$"
+        ".*\\.(exe|bat|com)$"
       ],
       "features": [
         {
-          "pattern": ".*\\.(exe|bat|conf)$"
+          "pattern": ".*\\.(exe|bat|com)$"
         }
       ]
     },
@@ -35,11 +35,11 @@
         }
       },
       "executables": [
-        ".*\\.(exe|bat|conf)$"
+        ".*\\.(exe|bat|com)$"
       ],
       "features": [
         {
-          "pattern": ".*\\.(exe|bat|conf)$"
+          "pattern": ".*\\.(exe|bat|com|conf)$"
         },
         {
           "pattern": "dosbox",
@@ -58,7 +58,9 @@
           "-c",
           "{executable}"
         ],
-        "evars": {}
+        "evars": {
+          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl2.so"
+        }
       },
       "executables": [
         ".*\\.ini$"

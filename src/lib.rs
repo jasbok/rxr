@@ -18,6 +18,7 @@ use std::path::PathBuf;
 
 mod command;
 mod configuration;
+mod deserialisers;
 mod extractor;
 mod feature;
 mod mappings;
@@ -57,14 +58,16 @@ fn determine_executor(config: &Configuration) -> Result<&profile::Profile, Box<E
 
     println!("Determined the following profile: {} ({})", profile, score);
 
-    Ok(config.profiles.get(profile).unwrap())
+    Ok(&config.profiles[profile])
 }
 
 fn execute(config: &Configuration) -> Result<(), Box<Error>> {
     let executor = config.get_profile().unwrap_or(determine_executor(config)?);
-    let executable_regex = &executor.executables_regex()?;
+    //let executable_regex = &executor.executables_regex()?;
 
-    let mut executables = utils::recursive_find(&config.target_dir, executable_regex)?;
+    //let mut executables = utils::recursive_find(&config.target_dir, executable_regex)?;
+    let mut executables =
+        utils::recursive_find(&config.target_dir, executor.executables.as_slice())?;
     executables.sort();
     utils::strip_prefix(&mut executables, &config.target_dir)?;
 
