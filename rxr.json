@@ -12,6 +12,7 @@
           "{executable}"
         ],
         "evars": {
+          "DRI_PRIME": "1",
           "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
         }
       },
@@ -31,6 +32,7 @@
           "{executable}"
         ],
         "evars": {
+          "DRI_PRIME": "1",
           "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
         }
       },
@@ -59,6 +61,7 @@
           "{executable}"
         ],
         "evars": {
+          "DRI_PRIME": "1",
           "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl2.so"
         }
       },
@@ -82,6 +85,7 @@
           "{executable}"
         ],
         "evars": {
+          "DRI_PRIME": "1",
           "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
         }
       },

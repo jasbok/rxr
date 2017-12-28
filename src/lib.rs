@@ -2,10 +2,13 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
 #[macro_use]
-extern crate serde_derive;
+extern crate lazy_static;
 
 #[macro_use]
-extern crate lazy_static;
+extern crate maplit;
+
+#[macro_use]
+extern crate serde_derive;
 
 extern crate clap;
 extern crate regex;
@@ -19,6 +22,7 @@ use std::path::PathBuf;
 mod command;
 mod configuration;
 mod deserialisers;
+mod dosbox_conf;
 mod extractor;
 mod feature;
 mod mappings;
@@ -41,7 +45,6 @@ fn extract(config: &Configuration) -> Result<(), Box<Error>> {
 }
 
 fn determine_executor(config: &Configuration) -> Result<&profile::Profile, Box<Error>> {
-
     let files = utils::recursive_find_all(&config.target_dir)?;
 
     let file_paths: Vec<&str> = files
@@ -63,9 +66,7 @@ fn determine_executor(config: &Configuration) -> Result<&profile::Profile, Box<E
 
 fn execute(config: &Configuration) -> Result<(), Box<Error>> {
     let executor = config.get_profile().unwrap_or(determine_executor(config)?);
-    //let executable_regex = &executor.executables_regex()?;
 
-    //let mut executables = utils::recursive_find(&config.target_dir, executable_regex)?;
     let mut executables =
         utils::recursive_find(&config.target_dir, executor.executables.as_slice())?;
     executables.sort();
@@ -73,15 +74,9 @@ fn execute(config: &Configuration) -> Result<(), Box<Error>> {
 
     if executables.len() > 1 {
         let menu = menu::Menu::from(&executables);
-        executor.run(
-            &PathBuf::from(menu.display()),
-            &config.target_dir,
-        )?;
+        executor.run(&PathBuf::from(menu.display()), &config.target_dir)?;
     } else if executables.len() == 1 {
-        executor.run(
-            &PathBuf::from(&executables[0]),
-            &config.target_dir,
-        )?;
+        executor.run(&PathBuf::from(&executables[0]), &config.target_dir)?;
     } else {
         println!("Could not find any suitable executables.");
     }
