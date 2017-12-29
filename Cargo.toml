@@ -5,6 +5,7 @@ authors = ["Stefan Alberts <stefan6573@gmail.com>"]
 
 [dependencies]
 clap = "2.29"
+difference = "1.0.0"
 lazy_static = "1.0.0"
 maplit = "1.0.0"
 ncurses = "5.87"

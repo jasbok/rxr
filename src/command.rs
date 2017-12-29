@@ -8,10 +8,8 @@ use mappings::Mappings;
 pub struct Command {
     pub cmd: String,
     pub args: Vec<String>,
-    #[serde(default = "Command::evars_default")]
-    pub evars: HashMap<String, String>,
-    #[serde(default = "Command::wd_default")]
-    pub wd: String,
+    #[serde(default = "Command::evars_default")] pub evars: HashMap<String, String>,
+    #[serde(default = "Command::wd_default")] pub wd: String,
 }
 
 impl Command {
@@ -33,19 +31,19 @@ impl Command {
         let mut cmd = process::Command::new(&self.cmd);
         cmd.args(&self.args).envs(&self.evars).current_dir(&self.wd);
 
-        println!("Executing command => {:#?}: {:?}", self.wd, cmd);
+        //println!("Executing command => {:#?}: {:?}", self.wd, cmd);
 
         let output = cmd.output();
 
         match output {
             Ok(output) => {
                 if output.status.success() {
-                    println!("Executed command successfully.");
+                    //println!("Executed command successfully.");
                 } else {
-                    println!("Command failed.");
+                    println!("Command failed: {:#?}", output.status);
+                    println!("[stdout] {:#?}", String::from_utf8_lossy(&output.stdout));
+                    println!("[stderr] {:#?}", String::from_utf8_lossy(&output.stderr));
                 }
-                println!("[stdout] {:#?}", String::from_utf8_lossy(&output.stdout));
-                println!("[stderr] {:#?}", String::from_utf8_lossy(&output.stderr));
             }
             Err(err) => println!("Failed to run command: {:#?}", err),
         }

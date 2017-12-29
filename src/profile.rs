@@ -20,14 +20,14 @@ pub struct Profile {
     #[serde(deserialize_with = "deserialisers::regex_array")]
     pub executables: Vec<Regex>,
 
-    #[serde(default = "Vec::new")]
-    pub features: Vec<Feature>,
+    #[serde(default = "Vec::new")] pub features: Vec<Feature>,
 }
 
 impl Profile {
     pub fn run(&self, executable: &PathBuf, target: &PathBuf) -> Result<(), Box<Error>> {
         let mut mappings = Mappings::new();
         mappings.insert("executable", executable);
+        mappings.insert("executable_dir", executable.as_path().parent().unwrap());
         mappings.insert("target", target);
 
         let mut command = self.command.clone();
@@ -38,8 +38,8 @@ impl Profile {
     }
 
     pub fn feature_score(&self, items: &[&str]) -> usize {
-        self.features.iter().fold(0, |sum, feature| {
-            sum + feature.score_all(items)
-        })
+        self.features
+            .iter()
+            .fold(0, |sum, feature| sum + feature.score_all(items))
     }
 }

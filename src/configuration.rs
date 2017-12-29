@@ -4,6 +4,10 @@ extern crate serde_json;
 extern crate regex;
 use regex::Regex;
 
+extern crate difference;
+//use difference::diff;
+//use difference::Difference;
+
 use std::collections::HashMap;
 use std::env;
 use std::error::Error;
@@ -17,7 +21,7 @@ use profile::Profile;
 
 #[derive(Deserialize, Debug)]
 pub struct ConfigurationSource {
-    pub archive: Option<String>,
+    pub archives: Option<Vec<String>>,
     pub config: Option<String>,
     pub data_dir: Option<String>,
     pub temp_dir: Option<String>,
@@ -30,7 +34,7 @@ pub struct ConfigurationSource {
 
 #[derive(Deserialize, Debug)]
 pub struct Configuration {
-    pub archive: PathBuf,
+    pub archives: Vec<PathBuf>,
     pub config: PathBuf,
     pub data_dir: PathBuf,
     pub temp_dir: PathBuf,
@@ -49,9 +53,10 @@ impl Configuration {
         let conf_filesystem: ConfigurationSource;
 
         {
-            let config_file = conf_command_line.config.as_ref().or_else(|| {
-                conf_environment.config.as_ref()
-            });
+            let config_file = conf_command_line
+                .config
+                .as_ref()
+                .or_else(|| conf_environment.config.as_ref());
 
             if config_file.is_some() {
                 let config_file = PathBuf::from(ConfigurationSource::expand_evars(
@@ -76,7 +81,7 @@ impl Configuration {
             self.extractors.get(self.extractor.as_ref().unwrap())
         } else {
             for extract in self.extractors.values() {
-                if extract.can_extract(&self.archive) {
+                if extract.can_extract(&self.archives[0]) {
                     return Some(extract);
                 }
             }
@@ -91,11 +96,9 @@ impl Configuration {
 
     pub fn get_profile(&self) -> Option<&Profile> {
         if self.profile.is_some() {
-            self.profiles.get(self.profile.as_ref().unwrap()).or_else(
-                || {
-                    self.profiles.get("fallback")
-                },
-            )
+            self.profiles
+                .get(self.profile.as_ref().unwrap())
+                .or_else(|| self.profiles.get("fallback"))
         } else {
             None
         }
@@ -105,7 +108,7 @@ impl Configuration {
 impl ConfigurationSource {
     pub fn compiled() -> ConfigurationSource {
         ConfigurationSource {
-            archive: None,
+            archives: None,
             config: option_env!("RXR_CONFIG").map(String::from),
             data_dir: option_env!("RXR_DATA_DIR").map(String::from),
             temp_dir: option_env!("RXR_TEMP_DIR").map(String::from),
@@ -119,7 +122,12 @@ impl ConfigurationSource {
 
     pub fn command_line(args: &clap::ArgMatches) -> ConfigurationSource {
         ConfigurationSource {
-            archive: args.value_of("archive").map(String::from),
+            archives: Some(
+                args.values_of("archives")
+                    .unwrap()
+                    .map(String::from)
+                    .collect(),
+            ),
             config: args.value_of("config").map(String::from),
             data_dir: args.value_of("data_dir").map(String::from),
             temp_dir: args.value_of("temp_dir").map(String::from),
@@ -133,7 +141,7 @@ impl ConfigurationSource {
 
     pub fn environment() -> ConfigurationSource {
         ConfigurationSource {
-            archive: None,
+            archives: None,
 
             config: ConfigurationSource::get_evar(&["RXR_CONFIG"]),
 
@@ -193,7 +201,7 @@ impl ConfigurationSource {
 
     pub fn merge(self, other: ConfigurationSource) -> ConfigurationSource {
         ConfigurationSource {
-            archive: self.archive.or(other.archive),
+            archives: self.archives.or(other.archives),
             config: self.config.or(other.config),
             data_dir: self.data_dir.or(other.data_dir),
             temp_dir: self.temp_dir.or(other.temp_dir),
@@ -217,29 +225,59 @@ impl ConfigurationSource {
             return Err(Box::new(ConfigError::NoTemp));
         }
 
-        let archive = self.archive.map(PathBuf::from).unwrap();
+        let archives: Vec<PathBuf> = self.archives.unwrap().iter().map(PathBuf::from).collect();
 
-        let mut temp_dir = self.temp_dir.map(ConfigurationSource::expand_evars).map(
-            PathBuf::from,
-        );
+        let mut temp_dir = self.temp_dir
+            .map(ConfigurationSource::expand_evars)
+            .map(PathBuf::from);
 
-        let mut target_dir = self.target_dir.map(ConfigurationSource::expand_evars).map(
-            PathBuf::from,
-        );
+        let mut target_dir = self.target_dir
+            .map(ConfigurationSource::expand_evars)
+            .map(PathBuf::from);
 
         if temp_dir.is_none() {
             temp_dir = Some(PathBuf::from(
                 target_dir.as_ref().unwrap().as_path().parent().unwrap(),
             ));
         } else {
+            let targets: Vec<&str> = archives
+                .iter()
+                .map(|target| target.as_path().file_stem().unwrap().to_str().unwrap())
+                .collect();
+
+            let mut target = String::from(targets[0]);
+
+            if targets.len() > 1 {
+                for archive in &targets {
+                    let change_set = difference::Changeset::new(&target, archive, "");
+                    target.clear();
+                    for diff in change_set.diffs {
+                        match diff {
+                            difference::Difference::Same(diff) => {
+                                target.push_str(&diff);
+                            }
+                            difference::Difference::Rem(diff) => {
+                                target.push_str(&diff);
+                            }
+                            difference::Difference::Add(diff) => {
+                                target.push_str("_");
+                                target.push_str(&diff);
+                            }
+                        }
+                    }
+                }
+            }
+
             let mut path = temp_dir.as_ref().unwrap().clone();
-            path.push(archive.as_path().file_name().unwrap());
+            path.push(&target);
+
+            println!("=====> Final Target Path: {:#?}", path);
 
             target_dir = Some(path);
         }
 
         Ok(Configuration {
-            archive: archive,
+            archives: archives,
 
             config: self.config
                 .map(ConfigurationSource::expand_evars)
@@ -282,12 +320,10 @@ impl fmt::Display for ConfigError {
                 write!(f, "no extractors where provided in the config file")
             }
             ConfigError::NoProfiles => write!(f, "no profiles where provided in the config file"),
-            ConfigError::NoTemp => {
-                write!(
-                    f,
-                    "no temp or target directory was provided in the config file"
-                )
-            }
+            ConfigError::NoTemp => write!(
+                f,
+                "no temp or target directory was provided in the config file"
+            ),
         }
     }
 }

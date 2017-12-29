@@ -38,7 +38,10 @@ fn extract(config: &Configuration) -> Result<(), Box<Error>> {
         println!("Extractor: {:#?}", extractor);
 
         fs::create_dir_all(&config.target_dir)?;
-        extractor.extract(&config.archive, &config.target_dir)?;
+
+        for archive in &config.archives {
+            extractor.extract(archive, &config.target_dir)?;
+        }
     }
 
     Ok(())

@@ -64,11 +64,11 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
-            clap::Arg::with_name("archive")
-                .help("Archive to be extracted.")
+            clap::Arg::with_name("archives")
+                .help("Archives to be extracted.")
                 .required(true)
-                .value_name("archive")
-                .index(1),
+                .value_name("archives")
+                .multiple(true),
         )
         .get_matches();
 

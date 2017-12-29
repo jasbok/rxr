@@ -29,15 +29,17 @@
       "command": {
         "cmd": "dosbox",
         "args": [
+          "-conf",
           "{executable}"
         ],
         "evars": {
           "DRI_PRIME": "1",
-          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so"
-        }
+          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so_"
+        },
+        "wd": "{executable_dir}"
       },
       "executables": [
-        ".*\\.(exe|bat|com)$"
+        ".*\\.(exe|conf)$"
       ],
       "features": [
         {
@@ -95,6 +97,26 @@
       "features": [
         {
           "pattern": ".*\\.(nes|bin|sms|smc|pce)$"
+        }
+      ]
+    },
+    "fs-uae": {
+      "command": {
+        "cmd": "fs-uae",
+        "args": [
+          "{executable}"
+        ],
+        "evars": {
+          "DRI_PRIME": "1",
+          "LD_PRELOAD": "/usr/local/lib/libshimmer_sdl.so_"
+        }
+      },
+      "executables": [
+        ".*\\.(adf)$"
+      ],
+      "features": [
+        {
+          "pattern": ".*\\.(adf)$"
         }
       ]
     },
