@@ -6,11 +6,9 @@ use deserialisers;
 
 #[derive(Deserialize, Debug)]
 pub struct Feature {
-    #[serde(deserialize_with = "deserialisers::regex")]
-    pattern: Regex,
+    #[serde(deserialize_with = "deserialisers::regex")] pattern: Regex,
 
-    #[serde(default = "Feature::default_weight")]
-    weight: usize,
+    #[serde(default = "Feature::default_weight")] weight: usize,
 }
 
 impl Feature {

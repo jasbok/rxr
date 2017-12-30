@@ -5,9 +5,6 @@
 extern crate lazy_static;
 
 #[macro_use]
-extern crate maplit;
-
-#[macro_use]
 extern crate serde_derive;
 
 extern crate clap;
@@ -22,9 +19,10 @@ use std::path::PathBuf;
 mod command;
 mod configuration;
 mod deserialisers;
-pub mod dosbox_conf;
+pub mod dosbox_config;
 mod extractor;
 mod feature;
+pub mod filters;
 mod mappings;
 mod menu;
 mod profile;

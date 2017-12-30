@@ -5,7 +5,7 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::process;
 
-use rxr::dosbox_conf::DosboxConfig;
+use rxr::dosbox_config::DosboxConfig;
 
 fn run(args: &clap::ArgMatches) -> Result<(), Box<Error>> {
     let source_path = args.value_of("source").map(PathBuf::from).unwrap();
