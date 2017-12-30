@@ -23,22 +23,9 @@ impl Filters {
         items
             .iter()
             .filter(|i| {
-                for excl in &self.excludes {
-                    if excl.is_match(i.as_ref().to_str().unwrap()) {
-                        return false;
-                    }
-                }
-
-                true
-            })
-            .filter(|i| {
-                for incl in &self.includes {
-                    if incl.is_match(i.as_ref().to_str().unwrap()) {
-                        return true;
-                    }
-                }
-
-                false
+                let i = i.as_ref().to_str().unwrap();
+                self.excludes.iter().all(|excl| !excl.is_match(i))
+                    && self.includes.iter().any(|incl| incl.is_match(i))
             })
             .collect()
     }
