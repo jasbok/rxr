@@ -22,7 +22,7 @@ use std::path::PathBuf;
 mod command;
 mod configuration;
 mod deserialisers;
-mod dosbox_conf;
+pub mod dosbox_conf;
 mod extractor;
 mod feature;
 mod mappings;

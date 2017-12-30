@@ -53,6 +53,22 @@
           "pattern": ".*_(single|setup).conf$",
           "weight": 2
         }
+      ],
+      "preprocessors": [
+        {
+          "command": {
+            "cmd": "rxr-dosbox-conf",
+            "args": [
+              "$HOME/.dosbox/dosbox-0.74.conf",
+              "{filter-match}"
+            ]
+          },
+          "filters": [
+            {
+              "pattern": ".*\\.conf$"
+            }
+          ]
+        }
       ]
     },
     "gog-scummvm": {

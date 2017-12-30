@@ -16,51 +16,14 @@ impl<'a> Menu<'a> {
         ncurses::initscr();
 
         let chars = vec![
-            b'1',
-            b'2',
-            b'3',
-            b'4',
-            b'5',
-            b'6',
-            b'7',
-            b'8',
-            b'9',
-            b'0',
-            b'q',
-            b'w',
-            b'e',
-            b'r',
-            b't',
-            b'y',
-            b'u',
-            b'i',
-            b'o',
-            b'p',
-            b'a',
-            b's',
-            b'd',
-            b'f',
-            b'g',
-            b'h',
-            b'j',
-            b'k',
-            b'l',
-            b';',
-            b'z',
-            b'x',
-            b'c',
-            b'v',
-            b'b',
-            b'n',
-            b'm',
-            b',',
-            b'.',
-            b'/',
+            b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0', b'q', b'w', b'e', b'r',
+            b't', b'y', b'u', b'i', b'o', b'p', b'a', b's', b'd', b'f', b'g', b'h', b'j', b'k',
+            b'l', b';', b'z', b'x', b'c', b'v', b'b', b'n', b'm', b',', b'.', b'/',
         ];
 
         let mut selection: Option<&PathBuf> = None;
         let mut page = 0;
-        let page_size = 10;
+        let page_size = 20;
         let pages: usize = self.paths.len() / page_size;
 
         while selection == None {
