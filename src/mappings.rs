@@ -26,10 +26,6 @@ impl Mappings {
         self
     }
 
-    // pub fn get(&self, key: &str) -> Option<&String> {
-    //     self.mappings.get(key)
-    // }
-
     pub fn replace_all<T: ?Sized>(&self, val: &T) -> String
     where
         T: Serialize,

@@ -96,7 +96,6 @@ impl DosboxConfig {
         let mut merged = self.clone();
 
         for line in &config_b.autoexec {
-            println!("Adding autoexec line: {}", line);
             merged.autoexec.push(line.clone());
         }
 

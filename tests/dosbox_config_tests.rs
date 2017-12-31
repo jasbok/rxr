@@ -72,9 +72,6 @@ mod tests {
         let config_a = DosboxConfig::parse(lines_a.as_slice()).unwrap();
         let config_b = DosboxConfig::parse(lines_b.as_slice()).unwrap();
 
-        println!("Config A: {:#?}", config_a);
-        println!("Config B: {:#?}", config_b);
-
         let merged = config_a.merge(&config_b);
 
         let expected = DosboxConfig {

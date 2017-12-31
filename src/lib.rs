@@ -1,5 +1,8 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
+#![feature(plugin)]
+#![plugin(error_def)]
+
 
 #[macro_use]
 extern crate lazy_static;
@@ -8,6 +11,7 @@ extern crate lazy_static;
 extern crate serde_derive;
 
 extern crate clap;
+extern crate eval;
 extern crate regex;
 extern crate serde;
 extern crate serde_json;
@@ -26,6 +30,7 @@ pub mod filters;
 mod mappings;
 mod menu;
 mod profile;
+pub mod template;
 mod utils;
 
 use configuration::Configuration;

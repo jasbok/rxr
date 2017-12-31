@@ -8,15 +8,15 @@ use mappings::Mappings;
 pub struct Command {
     pub cmd: String,
     pub args: Vec<String>,
-    #[serde(default = "Command::evars_default")] pub evars: HashMap<String, String>,
-    #[serde(default = "Command::wd_default")] pub wd: String,
+
+    #[serde(default)]
+    pub evars: HashMap<String, String>,
+
+    #[serde(default = "Command::wd_default")]
+    pub wd: String,
 }
 
 impl Command {
-    pub fn evars_default() -> HashMap<String, String> {
-        HashMap::new()
-    }
-
     pub fn wd_default() -> String {
         String::from("{target}")
     }

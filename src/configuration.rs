@@ -5,8 +5,6 @@ extern crate regex;
 use regex::Regex;
 
 extern crate difference;
-//use difference::diff;
-//use difference::Difference;
 
 use std::collections::HashMap;
 use std::env;
