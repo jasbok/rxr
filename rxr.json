@@ -120,7 +120,7 @@
       "command": {
         "cmd": "fs-uae",
         "args": [
-          "{executable}"
+          "--floppy-drive-{{$i}}={{$val}}"
         ],
         "evars": {
           "DRI_PRIME": "1",

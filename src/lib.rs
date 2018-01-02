@@ -79,8 +79,10 @@ fn execute(config: &Configuration) -> Result<(), Box<Error>> {
     utils::strip_prefix(&mut executables, &config.target_dir)?;
 
     if executables.len() > 1 {
-        let menu = menu::Menu::from(&executables);
-        executor.run(&PathBuf::from(menu.display()), &config.target_dir)?;
+        let mut menu = menu::Menu::from(&executables);
+        menu.display();
+        let selected: Vec<&usize> = menu.get_selected().iter().collect();
+        executor.run(executables.get(*selected[0]).unwrap(), &config.target_dir)?;
     } else if executables.len() == 1 {
         executor.run(&PathBuf::from(&executables[0]), &config.target_dir)?;
     } else {
