@@ -1,13 +1,10 @@
 extern crate clap;
 extern crate serde_json;
 
-extern crate regex;
-use regex::Regex;
-
 extern crate difference;
 
 use std::collections::HashMap;
-use std::env;
+
 use std::error::Error;
 use std::fmt;
 use std::fs::File;
@@ -16,6 +13,9 @@ use std::path::PathBuf;
 
 use extractor::Extractor;
 use profile::Profile;
+
+mod environment;
+use self::environment::Environment;
 
 #[derive(Deserialize, Debug)]
 pub struct ConfigurationSource {
@@ -45,8 +45,8 @@ pub struct Configuration {
 
 impl Configuration {
     pub fn load(args: &clap::ArgMatches) -> Result<Configuration, Box<Error>> {
-        let conf_environment =
-            ConfigurationSource::environment().merge(ConfigurationSource::compiled());
+        let conf_environment = ConfigurationSource::from(Environment::current())
+            .merge(ConfigurationSource::compiled());
         let conf_command_line = ConfigurationSource::command_line(args);
         let conf_filesystem: ConfigurationSource;
 
@@ -57,9 +57,7 @@ impl Configuration {
                 .or_else(|| conf_environment.config.as_ref());
 
             if config_file.is_some() {
-                let config_file = PathBuf::from(ConfigurationSource::expand_evars(
-                    config_file.unwrap().clone(),
-                ));
+                let config_file = PathBuf::from(Environment::expand(config_file.unwrap()));
 
                 println!("config_file: {:#?}", config_file);
                 conf_filesystem = ConfigurationSource::filesystem(&config_file)?;
@@ -137,64 +135,10 @@ impl ConfigurationSource {
         }
     }
 
-    pub fn environment() -> ConfigurationSource {
-        ConfigurationSource {
-            archives: None,
-
-            config: ConfigurationSource::get_evar(&["RXR_CONFIG"]),
-
-            data_dir: ConfigurationSource::get_evar(&["RXR_DATA_DIR", "XDG_DATA_HOME"]),
-
-            temp_dir: ConfigurationSource::get_evar(&["RXR_TEMP_DIR"]),
-
-            target_dir: ConfigurationSource::get_evar(&["RXR_TARGET_DIR"]),
-
-            extractor: ConfigurationSource::get_evar(&["RXR_EXTRACTOR"]),
-
-            profile: ConfigurationSource::get_evar(&["RXR_PROFILE"]),
-
-            extractors: None,
-
-            profiles: None,
-        }
-    }
-
     pub fn filesystem(path: &PathBuf) -> Result<ConfigurationSource, Box<Error>> {
         let mut json = String::new();
         File::open(&path)?.read_to_string(&mut json)?;
         Ok(serde_json::from_str(&json)?)
-    }
-
-    pub fn get_evar(keys: &[&str]) -> Option<String> {
-        for key in keys {
-            match env::var(key) {
-                Ok(val) => return Some(val),
-                Err(_) => continue,
-            }
-        }
-
-        None
-    }
-
-    pub fn expand_evars(s: String) -> String {
-        lazy_static! {
-            static ref RE: Regex = Regex::new(r"\$\{?([_a-zA-Z0-9]+)\}?").unwrap();
-        }
-
-        let expanded = RE.captures_iter(&s)
-            .map(|m| {
-                (
-                    m.get(0).unwrap().as_str(),
-                    env::var(m.get(1).unwrap().as_str()).unwrap_or_default(),
-                )
-            })
-            .fold(s.clone(), |e, (key, val)| e.replace(key, &val));
-
-        if expanded != s {
-            return ConfigurationSource::expand_evars(expanded);
-        }
-
-        expanded
     }
 
     pub fn merge(self, other: ConfigurationSource) -> ConfigurationSource {
@@ -226,11 +170,13 @@ impl ConfigurationSource {
         let archives: Vec<PathBuf> = self.archives.unwrap().iter().map(PathBuf::from).collect();
 
         let mut temp_dir = self.temp_dir
-            .map(ConfigurationSource::expand_evars)
+            .as_ref()
+            .map(Environment::expand)
             .map(PathBuf::from);
 
         let mut target_dir = self.target_dir
-            .map(ConfigurationSource::expand_evars)
+            .as_ref()
+            .map(Environment::expand)
             .map(PathBuf::from);
 
         if temp_dir.is_none() {
@@ -278,12 +224,14 @@ impl ConfigurationSource {
             archives: archives,
 
             config: self.config
-                .map(ConfigurationSource::expand_evars)
+                .as_ref()
+                .map(Environment::expand)
                 .map(PathBuf::from)
                 .unwrap(),
 
             data_dir: self.data_dir
-                .map(ConfigurationSource::expand_evars)
+                .as_ref()
+                .map(Environment::expand)
                 .map(PathBuf::from)
                 .unwrap(),
 
@@ -299,6 +247,30 @@ impl ConfigurationSource {
 
             profiles: self.profiles.unwrap(),
         })
+    }
+}
+
+impl From<Environment> for ConfigurationSource {
+    fn from(environment: Environment) -> ConfigurationSource {
+        ConfigurationSource {
+            archives: None,
+
+            config: environment.get_config().map(String::clone),
+
+            data_dir: environment.get_data_dir().map(String::clone),
+
+            temp_dir: environment.get_temp_dir().map(String::clone),
+
+            target_dir: environment.get_target_dir().map(String::clone),
+
+            extractor: environment.get_extractor().map(String::clone),
+
+            profile: environment.get_profile().map(String::clone),
+
+            extractors: None,
+
+            profiles: None,
+        }
     }
 }
 

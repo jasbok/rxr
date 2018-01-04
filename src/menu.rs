@@ -90,7 +90,8 @@ impl<'a> Menu<'a> {
                 return false;
             }
             select => {
-                if let Some(opt) = OPTS.iter().position(|&c| c == select) {
+                if let Some(mut opt) = OPTS.iter().position(|&c| c == select) {
+                    opt += self.page * self.page_size;
                     if self.selected.contains(&opt) {
                         self.selected.remove(&opt);
                     } else {

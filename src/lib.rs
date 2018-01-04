@@ -21,7 +21,7 @@ use std::fs;
 use std::path::PathBuf;
 
 mod command;
-mod configuration;
+mod config;
 mod deserialisers;
 pub mod dosbox_config;
 mod extractor;
@@ -33,7 +33,7 @@ mod profile;
 pub mod template;
 mod utils;
 
-use configuration::Configuration;
+use config::Configuration;
 
 fn extract(config: &Configuration) -> Result<(), Box<Error>> {
     if !config.target_dir.as_path().exists() {
