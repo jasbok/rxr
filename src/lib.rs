@@ -92,8 +92,8 @@ fn execute(config: &Configuration) -> Result<(), Box<Error>> {
     Ok(())
 }
 
-pub fn run(args: &clap::ArgMatches) -> Result<(), Box<Error>> {
-    let config = Configuration::load(args)?;
+pub fn run() -> Result<(), Box<Error>> {
+    let config = Configuration::load()?;
     extract(&config)?;
     execute(&config)?;
     Ok(())

@@ -1,3 +1,5 @@
+use super::source::Source;
+
 extern crate regex;
 use regex::Regex;
 
@@ -7,10 +9,6 @@ use std::env;
 pub struct Environment(HashMap<String, String>);
 
 impl Environment {
-    pub fn new() -> Environment {
-        Environment { 0: HashMap::new() }
-    }
-
     pub fn current() -> Environment {
         Environment {
             0: env::vars()
@@ -65,5 +63,19 @@ impl Environment {
 
     pub fn get_profile(&self) -> Option<&String> {
         self.0.get("RXR_TEMP_DIR")
+    }
+}
+
+impl From<Environment> for Source {
+    fn from(environment: Environment) -> Source {
+        Source {
+            config: environment.get_config().map(String::clone),
+            data_dir: environment.get_data_dir().map(String::clone),
+            temp_dir: environment.get_temp_dir().map(String::clone),
+            target_dir: environment.get_target_dir().map(String::clone),
+            extractor: environment.get_extractor().map(String::clone),
+            profile: environment.get_profile().map(String::clone),
+            ..Default::default()
+        }
     }
 }
