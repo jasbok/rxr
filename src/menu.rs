@@ -95,7 +95,7 @@ impl<'a> Menu<'a> {
                     if self.selected.contains(&opt) {
                         self.selected.remove(&opt);
                     } else {
-                        self.selected.insert(opt.clone());
+                        self.selected.insert(opt);
                     }
                 } else {
 

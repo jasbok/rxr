@@ -81,10 +81,8 @@ impl Source {
                     target.clear();
                     for diff in change_set.diffs {
                         match diff {
-                            difference::Difference::Same(diff) => {
-                                target.push_str(&diff);
-                            }
-                            difference::Difference::Rem(diff) => {
+                            difference::Difference::Same(diff)
+                            | difference::Difference::Rem(diff) => {
                                 target.push_str(&diff);
                             }
                             difference::Difference::Add(diff) => {

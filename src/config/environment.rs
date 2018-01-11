@@ -46,7 +46,9 @@ impl Environment {
     }
 
     pub fn get_data_dir(&self) -> Option<&String> {
-        self.0.get("RXR_DATA_DIR").or(self.0.get("XDG_DATA_HOME"))
+        self.0
+            .get("RXR_DATA_DIR")
+            .or_else(|| self.0.get("XDG_DATA_HOME"))
     }
 
     pub fn get_temp_dir(&self) -> Option<&String> {

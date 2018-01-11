@@ -35,8 +35,8 @@ impl Configuration {
         {
             let persisted_path = args.config
                 .as_ref()
-                .or(environment.get_config())
-                .or(compiled.config.as_ref());
+                .or_else(|| environment.get_config())
+                .or_else(|| compiled.config.as_ref());
 
             if let Some(path) = persisted_path {
                 persisted = Persisted::read(path)?;

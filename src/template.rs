@@ -73,7 +73,7 @@ impl<'t, 'm> Template<'t> {
 
                 let value = match expr {
                     Value::Number(val) => Some(val.to_string()),
-                    Value::String(val) => Some(String::from(val)),
+                    Value::String(val) => Some(val),
                     _ => None,
                 };
 

@@ -3,7 +3,6 @@
 #![feature(plugin)]
 #![plugin(error_def)]
 
-
 #[macro_use]
 extern crate lazy_static;
 
@@ -82,7 +81,8 @@ fn execute(config: &Configuration) -> Result<(), Box<Error>> {
         let mut menu = menu::Menu::from(&executables);
         menu.display();
         let selected: Vec<&usize> = menu.get_selected().iter().collect();
-        executor.run(executables.get(*selected[0]).unwrap(), &config.target_dir)?;
+        let executable = &executables[*selected[0]];
+        executor.run(executable, &config.target_dir)?;
     } else if executables.len() == 1 {
         executor.run(&PathBuf::from(&executables[0]), &config.target_dir)?;
     } else {

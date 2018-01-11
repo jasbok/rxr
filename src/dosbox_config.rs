@@ -7,20 +7,13 @@ use std::path::PathBuf;
 
 use regex::Regex;
 
-#[derive(Deserialize, Debug, Clone, PartialEq)]
+#[derive(Default, Deserialize, Debug, Clone, PartialEq)]
 pub struct DosboxConfig {
     pub autoexec: Vec<String>,
     pub settings: HashMap<String, HashMap<String, String>>,
 }
 
 impl DosboxConfig {
-    pub fn new() -> DosboxConfig {
-        DosboxConfig {
-            autoexec: Vec::new(),
-            settings: HashMap::new(),
-        }
-    }
-
     pub fn read(path: &PathBuf) -> Result<DosboxConfig, Box<Error>> {
         let lines: Vec<String> = BufReader::new(File::open(&path)?)
             .lines()
@@ -59,7 +52,7 @@ impl DosboxConfig {
                         if let Some((key, val)) = DosboxConfig::setting_from(line) {
                             settings
                             .entry(String::from(section)) // TODO: Avoid multiple clones.
-                            .or_insert(HashMap::new())
+                            .or_insert_with(HashMap::new)
                             .insert(key, val);
                         }
                     }
@@ -82,7 +75,7 @@ impl DosboxConfig {
             static ref KEY_VAL_RE : Regex = Regex::new("(.+?)\\s*=\\s*(.+)").unwrap();
         }
 
-        if let Some(caps) = KEY_VAL_RE.captures(&line) {
+        if let Some(caps) = KEY_VAL_RE.captures(line) {
             return Some((
                 String::from(caps.get(1).unwrap().as_str()),
                 String::from(caps.get(2).unwrap().as_str()),
@@ -116,16 +109,16 @@ impl DosboxConfig {
         let mut file = File::create(path)?;
 
         for (section, settings) in &self.settings {
-            file.write(format!("[{}]\n", section).as_bytes())?;
+            file.write_all(format!("[{}]\n", section).as_bytes())?;
 
             for (key, val) in settings {
-                file.write(format!("{}={}\n", key, val).as_bytes())?;
+                file.write_all(format!("{}={}\n", key, val).as_bytes())?;
             }
         }
 
-        file.write("[autoexec]\n".as_bytes())?;
+        file.write_all(b"[autoexec]\n")?;
         for line in &self.autoexec {
-            file.write(format!("{}\n", line).as_bytes())?;
+            file.write_all(format!("{}\n", line).as_bytes())?;
         }
 
         file.flush()?;
