@@ -44,7 +44,7 @@ impl<'t, 'm> Template<'t> {
                     key: String::from(expr),
                 };
 
-                return Err(Box::new(err));
+                //return Err(Box::new(err));
             }
         }
 
@@ -91,7 +91,8 @@ impl<'t, 'm> Template<'t> {
     }
 }
 
-error_def! TemplateError {
-    SubstitutionNoFound { key: String }
-        => "Variant with args" ("This is a format string. flim is {}", key ),
+#[derive(Debug, Fail)]
+enum TemplateError {
+    #[fail(display = "Substitution not found: {}", key)]
+    SubstitutionNoFound { key: String },
 }

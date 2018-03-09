@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::error::Error;
 
 use command::Command;
@@ -11,19 +11,33 @@ pub struct Extractor {
 }
 
 impl Extractor {
-    pub fn can_extract(&self, path: &PathBuf) -> bool {
-        self.extensions.contains(&String::from(
-            path.as_path().extension().unwrap().to_str().unwrap(),
-        ))
+    pub fn can_extract<T>(&self, path: &T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        let extension = Path::new(path.as_ref())
+            .extension()
+            .unwrap_or_default()
+            .to_string_lossy();
+
+        self.extensions.contains(&extension.into_owned())
     }
 
-    pub fn extract(&self, archive: &PathBuf, target: &PathBuf) -> Result<(), Box<Error>> {
+    pub fn extract<T>(&self, archive: &T, target: &T) -> Result<(), Box<Error>>
+    where
+        T: AsRef<str>,
+    {
         let mut mappings = Mappings::new();
         mappings.insert("archive", archive);
         mappings.insert("target", target);
 
+        println!("Mappings: {:#?}", mappings);
+
         let mut command = self.command.clone();
         command.apply_mappings(&mappings);
+
+        println!("Command: {:#?}", command);
+
         command.execute()?;
 
         Ok(())

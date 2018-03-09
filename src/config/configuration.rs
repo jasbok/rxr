@@ -10,15 +10,14 @@ use profile::Profile;
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::path::PathBuf;
 
 #[derive(Deserialize, Debug)]
 pub struct Configuration {
-    pub archives: Vec<PathBuf>,
-    pub config: PathBuf,
-    pub data_dir: PathBuf,
-    pub temp_dir: PathBuf,
-    pub target_dir: PathBuf,
+    pub archives: Vec<String>,
+    pub config: String,
+    pub data_dir: String,
+    pub temp_dir: String,
+    pub target_dir: String,
     pub extractor: Option<String>,
     pub profile: Option<String>,
     pub extractors: HashMap<String, Extractor>,

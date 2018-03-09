@@ -1,13 +1,17 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 #![feature(plugin)]
-#![plugin(error_def)]
+
+extern crate failure;
 
 #[macro_use]
 extern crate lazy_static;
 
 #[macro_use]
 extern crate serde_derive;
+
+#[macro_use]
+extern crate failure_derive;
 
 extern crate clap;
 extern crate eval;
@@ -17,6 +21,7 @@ extern crate serde_json;
 
 use std::error::Error;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 
 mod command;
@@ -35,14 +40,18 @@ mod utils;
 use config::Configuration;
 
 fn extract(config: &Configuration) -> Result<(), Box<Error>> {
-    if !config.target_dir.as_path().exists() {
-        let extractor = config.get_extractor().unwrap();
-        println!("Extractor: {:#?}", extractor);
+    let target_path = Path::new(&config.target_dir);
+    if !target_path.exists() {
+        fs::create_dir_all(target_path)?;
 
-        fs::create_dir_all(&config.target_dir)?;
+        if let Some(extractor) = config.get_extractor() {
+            println!("Extractor: {:#?}", extractor);
 
-        for archive in &config.archives {
-            extractor.extract(archive, &config.target_dir)?;
+            for archive in &config.archives {
+                extractor.extract(archive, &config.target_dir)?;
+            }
+        } else {
+            //return Err(Box::new(Error()));
         }
     }
 
@@ -72,19 +81,21 @@ fn determine_executor(config: &Configuration) -> Result<&profile::Profile, Box<E
 fn execute(config: &Configuration) -> Result<(), Box<Error>> {
     let executor = config.get_profile().unwrap_or(determine_executor(config)?);
 
+    let target_dir = PathBuf::from(&config.target_dir);
+
     let mut executables =
         utils::recursive_find(&config.target_dir, executor.executables.as_slice())?;
     executables.sort();
-    utils::strip_prefix(&mut executables, &config.target_dir)?;
+    utils::strip_prefix(&mut executables, &target_dir)?;
 
     if executables.len() > 1 {
         let mut menu = menu::Menu::from(&executables);
         menu.display();
         let selected: Vec<&usize> = menu.get_selected().iter().collect();
         let executable = &executables[*selected[0]];
-        executor.run(executable, &config.target_dir)?;
+        executor.run(executable, &target_dir)?;
     } else if executables.len() == 1 {
-        executor.run(&PathBuf::from(&executables[0]), &config.target_dir)?;
+        executor.run(&PathBuf::from(&executables[0]), &target_dir)?;
     } else {
         println!("Could not find any suitable executables.");
     }

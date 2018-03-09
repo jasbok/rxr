@@ -1,5 +1,3 @@
-use serde::Serialize;
-use serde_json;
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -16,11 +14,11 @@ impl Mappings {
 
     pub fn insert<K: ?Sized, V: ?Sized>(&mut self, key: &K, val: &V) -> &Mappings
     where
-        K: Serialize,
-        V: Serialize,
+        K: AsRef<str>,
+        V: AsRef<str>,
     {
-        let key = serde_json::to_string(key).unwrap().replace("\"", "");
-        let val = self.replace_all(val);
+        let key = String::from(key.as_ref()).replace("\"", "");
+        let val = self.replace_all(val.as_ref());
         self.mappings.insert(key, val);
 
         self
@@ -28,9 +26,9 @@ impl Mappings {
 
     pub fn replace_all<T: ?Sized>(&self, val: &T) -> String
     where
-        T: Serialize,
+        T: AsRef<str>,
     {
-        let mut result = serde_json::to_string(val).unwrap().replace("\"", "");
+        let mut result = String::from(val.as_ref()).replace("\"", "");
 
         for (key, val) in &self.mappings {
             result = result.replace(&format!("{{{}}}", key), val);

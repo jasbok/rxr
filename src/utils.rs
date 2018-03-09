@@ -2,10 +2,16 @@ use std::error::Error;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::ffi::OsStr;
 
 use regex::Regex;
 
-pub fn recursive_find_all(dir: &Path) -> Result<Vec<PathBuf>, Box<Error>> {
+pub fn recursive_find_all<T>(dir: &T) -> Result<Vec<PathBuf>, Box<Error>>
+where
+    T: AsRef<OsStr>,
+{
+    let dir = Path::new(dir.as_ref());
+
     if dir.is_dir() {
         let (dirs, files): (Vec<PathBuf>, Vec<PathBuf>) = fs::read_dir(dir)?
             .filter_map(|e| e.ok())
@@ -25,7 +31,12 @@ pub fn recursive_find_all(dir: &Path) -> Result<Vec<PathBuf>, Box<Error>> {
     Ok(Vec::new())
 }
 
-pub fn recursive_find(dir: &Path, regexes: &[Regex]) -> Result<Vec<PathBuf>, Box<Error>> {
+pub fn recursive_find<T>(dir: &T, regexes: &[Regex]) -> Result<Vec<PathBuf>, Box<Error>>
+where
+    T: AsRef<OsStr>,
+{
+    let dir = Path::new(dir.as_ref());
+
     if dir.is_dir() {
         let (dirs, files): (Vec<PathBuf>, Vec<PathBuf>) = fs::read_dir(dir)?
             .filter_map(|e| e.ok())
@@ -35,9 +46,9 @@ pub fn recursive_find(dir: &Path, regexes: &[Regex]) -> Result<Vec<PathBuf>, Box
         let mut results: Vec<PathBuf> = files
             .iter()
             .filter(|f| {
-                regexes.iter().any(
-                    |regex| regex.is_match(f.to_str().unwrap()),
-                )
+                regexes
+                    .iter()
+                    .any(|regex| regex.is_match(f.to_str().unwrap()))
             })
             .cloned()
             .collect();

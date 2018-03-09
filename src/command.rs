@@ -31,14 +31,14 @@ impl Command {
         let mut cmd = process::Command::new(&self.cmd);
         cmd.args(&self.args).envs(&self.evars).current_dir(&self.wd);
 
-        //println!("Executing command => {:#?}: {:?}", self.wd, cmd);
+        println!("Executing command => {:#?}: {:?}", self.wd, cmd);
 
         let output = cmd.output();
 
         match output {
             Ok(output) => {
                 if output.status.success() {
-                    //println!("Executed command successfully.");
+                    println!("Executed command successfully.");
                 } else {
                     println!("Command failed: {:#?}", output.status);
                     println!("[stdout] {:#?}", String::from_utf8_lossy(&output.stdout));
